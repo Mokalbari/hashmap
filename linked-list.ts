@@ -1,5 +1,4 @@
-import { Node } from "./node.ts"
-import { Data } from "./types.ts"
+import { type Data, Node, Nullable } from "./node.ts"
 
 interface LinkedListInterface<K, V> {
   isEmpty: () => boolean
@@ -8,21 +7,22 @@ interface LinkedListInterface<K, V> {
   append: (key: K, value: V) => void
   getHead: () => Data<K, V> | null
   getTail: () => Data<K, V> | null
-  at: (index: number) => Data<K, V> | null
+  at: (position: number) => Data<K, V> | null
+  clear: () => void
   pop: () => Data<K, V> | null
   nodeHasNext: (node: Node<K, V>) => boolean
   keyHasNext: (key: K) => boolean
   contains: (key: K) => boolean
   find: (key: K) => Data<K, V> | null
   read: (key: K) => V | null
-  toString: () => string
-  insertAt: (index: number, key: K, value: V) => void
-  removeAt: (index: number, key: K, value: V) => void
-  updateAt: (index: number, key: K, value: V) => void
+  toString: (withKey: boolean) => string
+  insertAt: (position: number, key: K, value: V) => void
+  removeAt: (position: number, key: K, value: V) => void
+  updateAt: (position: number, key: K, value: V) => void
 }
 
 export class LinkedList<K, V> implements LinkedListInterface<K, V> {
-  private head: Node<K, V> | null
+  private head: Nullable<Node<K, V>>
 
   constructor() {
     this.head = null
@@ -72,8 +72,7 @@ export class LinkedList<K, V> implements LinkedListInterface<K, V> {
   }
 
   getHead() {
-    if (!this.head) return null
-    return this.head.data
+    return this.head?.data ?? null
   }
 
   getTail() {
@@ -85,19 +84,23 @@ export class LinkedList<K, V> implements LinkedListInterface<K, V> {
     return temp.data
   }
 
-  at(index: number) {
-    if (!this.head || index < 0) return null
+  at(position: number) {
+    if (!this.head || position < 0) return null
 
-    let clock = 0
-    let temp: Node<K, V> | null = this.head
+    let currentPosition = 0
+    let temp: Nullable<Node<K, V>> = this.head
 
     while (temp) {
-      if (index === clock) return temp.data
+      if (position === currentPosition) return temp.data
       temp = temp.next
-      clock++
+      currentPosition++
     }
 
     return null
+  }
+
+  clear() {
+    this.head = null
   }
 
   pop() {
@@ -129,7 +132,7 @@ export class LinkedList<K, V> implements LinkedListInterface<K, V> {
   keyHasNext(key: K) {
     if (!this.head) return false
 
-    let temp: Node<K, V> | null = this.head
+    let temp: Nullable<Node<K, V>> = this.head
 
     while (temp) {
       if (key === temp.data.key) {
@@ -143,7 +146,7 @@ export class LinkedList<K, V> implements LinkedListInterface<K, V> {
   contains(key: K) {
     if (!this.head) return false
 
-    let temp: Node<K, V> | null = this.head
+    let temp: Nullable<Node<K, V>> = this.head
 
     while (temp) {
       if (temp.data.key === key) return true
@@ -156,7 +159,7 @@ export class LinkedList<K, V> implements LinkedListInterface<K, V> {
   find(key: K) {
     if (!this.head) return null
 
-    let temp: Node<K, V> | null = this.head
+    let temp: Nullable<Node<K, V>> = this.head
 
     while (temp) {
       if (temp.data.key === key) return temp.data
@@ -168,8 +171,7 @@ export class LinkedList<K, V> implements LinkedListInterface<K, V> {
 
   read(key: K) {
     if (!this.head) return null
-
-    let temp: Node<K, V> | null = this.head
+    let temp: Nullable<Node<K, V>> = this.head
 
     while (temp) {
       if (temp.data.key === key) return temp.data.value
@@ -180,17 +182,19 @@ export class LinkedList<K, V> implements LinkedListInterface<K, V> {
     return null
   }
 
-  toString() {
-    let output = ""
-    if (!this.head) return output
-    let temp: Node<K, V> | null = this.head
+  toString(withKey: boolean) {
+    if (!this.head) return ""
+    let temp: Nullable<Node<K, V>> = this.head
 
+    const toPrint = []
     while (temp) {
-      output += `(${temp.data.value}) -> `
+      toPrint.push(
+        withKey ? `${temp.data.key}: ${temp.data.value}` : `${temp.data.value}`
+      )
       temp = temp.next
     }
 
-    return output
+    return toPrint.join(" -> ")
   }
 
   insertAt(position: number, key: K, value: V) {
@@ -198,7 +202,7 @@ export class LinkedList<K, V> implements LinkedListInterface<K, V> {
       this.prepend(key, value)
     }
 
-    let current: Node<K, V> | null = this.head
+    let current: Nullable<Node<K, V>> = this.head
     let currentPosition = 0
 
     while (current !== null && currentPosition < position - 1) {
@@ -224,8 +228,8 @@ export class LinkedList<K, V> implements LinkedListInterface<K, V> {
       )
 
     if (!this.head) return
-    let temp: Node<K, V> | null = this.head
-    let previous: Node<K, V> | null = null
+    let temp: Nullable<Node<K, V>> = this.head
+    let previous: Nullable<Node<K, V>> = null
     let currentPosition = 0
 
     if (position === 0) {
@@ -251,7 +255,7 @@ export class LinkedList<K, V> implements LinkedListInterface<K, V> {
   }
 
   updateAt(position: number, key: K, value: V) {
-    let temp: Node<K, V> | null = this.head
+    let temp: Nullable<Node<K, V>> = this.head
     let currentPosition = 0
 
     while (temp !== null && currentPosition < position) {
