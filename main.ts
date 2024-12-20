@@ -4,14 +4,17 @@ type Bucket = ReturnType<typeof createLinkedList>
 
 export function createHashmap() {
   const loadFactor = 0.75
-  const capacity = 16
+  let capacity = 16
+  let counter = 0
   const bucketList: Bucket[] = new Array(capacity).fill(null)
 
-  const initBucket = () => {
+  const _initBucket = () => {
     for (let i = 0; i < capacity; i++) {
       bucketList[i] = createLinkedList()
     }
   }
+
+  _initBucket()
 
   const hash = (key: string) => {
     const PRIME_NUMBER = 31
@@ -25,8 +28,7 @@ export function createHashmap() {
   }
 
   const has = (key: string): boolean => {
-    const bucketNumber = hash(key)
-    const bucket = bucketList[bucketNumber]
+    const bucket = bucketList[hash(key)]
     return bucket.contains(key)
   }
 
@@ -35,8 +37,17 @@ export function createHashmap() {
     const bucket = bucketList[bucketNumber]
 
     if (has(key)) {
+      bucket.updateValueAtIndex({ key, value }, bucketNumber)
     }
+
+    bucket.addLast({ key, value })
   }
 
-  return { initBucket, hash, has, set }
+  return { hash, has, set }
 }
+
+/* 
+TODO : modifier la f() set pour utiliser le built in updateValue de linked list
+Actuellement, la f() modifie une copie des données mais pas les données
+Implémenter la fonction counter
+*/

@@ -105,6 +105,19 @@ export function createLinkedList<T>() {
     return -1
   }
 
+  const updateValueAtIndex = (newValue: T, index: number): void => {
+    let currentIndex = 0
+    let currentNode = head
+
+    while (currentNode !== null) {
+      if (currentIndex === index) {
+        currentNode.data = newValue
+        return
+      }
+      currentNode = currentNode.next
+      currentIndex++
+    }
+  }
   const toString = (): string => {
     if (isEmpty()) return "null"
     let output = ""
@@ -128,6 +141,7 @@ export function createLinkedList<T>() {
     pop,
     contains,
     find,
+    updateValueAtIndex,
     toString,
   }
 }
