@@ -1,5 +1,8 @@
-import { createNode } from "./create-node.ts"
 import type { Node } from "./types.ts"
+
+type key = string
+type value = unknown
+type NodeData = Record<key, value>
 
 export function createLinkedList<T>() {
   let head: Node<T> | null = null
@@ -60,6 +63,18 @@ export function createLinkedList<T>() {
       currentIndex++
     }
 
+    return null
+  }
+
+  const readDataAtKeyIndex = (key: T) => {
+    let currentNode = head
+
+    while (currentNode !== null) {
+      if (key === currentNode) {
+        return currentNode.data
+      }
+      currentNode
+    }
     return null
   }
 
@@ -143,5 +158,6 @@ export function createLinkedList<T>() {
     find,
     updateValueAtIndex,
     toString,
+    readDataAtKeyIndex,
   }
 }
