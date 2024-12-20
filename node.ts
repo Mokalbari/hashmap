@@ -1,7 +1,4 @@
-interface Data<K, V> {
-  key: K
-  value: V
-}
+import { Data } from "./types.ts"
 
 export class Node<K, V> {
   public next: Node<K, V> | null
