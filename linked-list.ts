@@ -1,5 +1,7 @@
 import { type Data, Node, Nullable } from "./node.ts"
 
+type Criteria = "key" | "value" | "both"
+
 interface LinkedListInterface<K, V> {
   isEmpty: () => boolean
   size: () => number
@@ -16,9 +18,10 @@ interface LinkedListInterface<K, V> {
   contains: (key: K) => boolean
   find: (key: K) => Data<K, V> | null
   read: (key: K) => V | null
-  toString: (withKey: boolean) => string
+  toString: (criteria: Criteria) => string
+  toArray: (criteria: Criteria) => K[] | V[] | [K, V][] | []
   insertAt: (position: number, key: K, value: V) => void
-  removeAt: (position: number, key: K, value: V) => void
+  removeAt: (position: number, key: K, value: V) => boolean
   updateAt: (position: number, key: K, value: V) => void
 }
 
@@ -187,6 +190,20 @@ export class LinkedList<K, V> implements LinkedListInterface<K, V> {
     return null
   }
 
+  findIndex(key: K) {
+    if (!this.head) return -1
+
+    let temp: Nullable<Node<K, V>> = this.head
+    let currentPosition = 0
+
+    while (temp) {
+      if (temp.data.key === key) return currentPosition
+      temp = temp.next
+      currentPosition++
+    }
+    return -1
+  }
+
   read(key: K) {
     if (!this.head) return null
     let temp: Nullable<Node<K, V>> = this.head
@@ -200,14 +217,16 @@ export class LinkedList<K, V> implements LinkedListInterface<K, V> {
     return null
   }
 
-  toString(withKey: boolean) {
+  toString(criteria: Criteria) {
     if (!this.head) return ""
     let temp: Nullable<Node<K, V>> = this.head
 
-    const toPrint = []
+    const toPrint: string[] = []
     while (temp) {
       toPrint.push(
-        withKey ? `${temp.data.key}: ${temp.data.value}` : `${temp.data.value}`
+        criteria === "both"
+          ? `${temp.data.key}: ${temp.data.value}`
+          : `${temp.data[criteria]}`
       )
       temp = temp.next
     }
@@ -240,12 +259,8 @@ export class LinkedList<K, V> implements LinkedListInterface<K, V> {
   }
 
   removeAt(position: number) {
-    if (position < 0)
-      throw new Error(
-        "The index provided was below 0. Provide an index between 0 and this.size() - 1"
-      )
+    if (position < 0 || !this.head) return false
 
-    if (!this.head) return
     let temp: Nullable<Node<K, V>> = this.head
     let previous: Nullable<Node<K, V>> = null
     let currentPosition = 0
@@ -256,6 +271,7 @@ export class LinkedList<K, V> implements LinkedListInterface<K, V> {
       } else {
         this.head = this.head.next
       }
+      return true
     }
 
     while (temp !== null && currentPosition < position) {
@@ -265,11 +281,12 @@ export class LinkedList<K, V> implements LinkedListInterface<K, V> {
     }
 
     if (!temp) {
-      throw new Error(`Position ${position} is out of bounds`)
+      return false
     }
 
     previous!.next = temp.next
     temp = null
+    return true
   }
 
   updateAt(position: number, key: K, value: V) {
@@ -286,5 +303,28 @@ export class LinkedList<K, V> implements LinkedListInterface<K, V> {
     }
 
     temp.data = { key, value }
+  }
+
+  toArray(criteria: Criteria): K[] | V[] | [K, V][] {
+    if (!this.head) return []
+
+    let temp: Nullable<Node<K, V>> = this.head
+
+    if (criteria === "both") {
+      const output: [K, V][] = []
+      while (temp) {
+        output.push([temp.data.key, temp.data.value])
+        temp = temp.next
+      }
+      return output
+    }
+
+    const output: (K | V)[] = []
+    while (temp) {
+      output.push(temp.data[criteria])
+      temp = temp.next
+    }
+
+    return output as typeof criteria extends "key" ? K[] : V[]
   }
 }
