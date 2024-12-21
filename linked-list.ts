@@ -5,12 +5,12 @@ type Criteria = "key" | "value" | "both"
 interface LinkedListInterface<K, V> {
   isEmpty: () => boolean
   size: () => number
-  prepend: (key: K, value: V) => void
-  append: (key: K, value: V) => void
+  prepend: (key: K, value: V) => boolean
+  append: (key: K, value: V) => boolean
   getHead: () => Data<K, V> | null
   getTail: () => Data<K, V> | null
   at: (position: number) => Data<K, V> | null
-  clear: () => void
+  clear: () => boolean
   pop: () => Data<K, V> | null
   nodeHasNext: (node: Node<K, V>) => boolean
   keyHasNext: (key: K) => boolean
@@ -51,13 +51,16 @@ export class LinkedList<K, V> implements LinkedListInterface<K, V> {
 
   prepend(key: K, value: V) {
     const node = new Node(key, value)
+
     if (!this.head) {
       this.head = node
-      return
+      return true
     }
+
     const prevHead = this.head
     this.head = node
     this.head.next = prevHead
+    return true
   }
 
   append(key: K, value: V) {
@@ -65,7 +68,7 @@ export class LinkedList<K, V> implements LinkedListInterface<K, V> {
 
     if (!this.head) {
       this.head = node
-      return
+      return true
     }
 
     let temp = this.head
@@ -73,6 +76,7 @@ export class LinkedList<K, V> implements LinkedListInterface<K, V> {
       temp = temp.next
     }
     temp.next = node
+    return true
   }
 
   getHead() {
@@ -105,6 +109,7 @@ export class LinkedList<K, V> implements LinkedListInterface<K, V> {
 
   clear() {
     this.head = null
+    return true
   }
 
   pop() {
