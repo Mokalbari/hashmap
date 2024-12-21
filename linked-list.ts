@@ -12,6 +12,7 @@ interface LinkedListInterface<K, V> {
   pop: () => Data<K, V> | null
   nodeHasNext: (node: Node<K, V>) => boolean
   keyHasNext: (key: K) => boolean
+  readNextKey: (position: number) => K | null
   contains: (key: K) => boolean
   find: (key: K) => Data<K, V> | null
   read: (key: K) => V | null
@@ -141,6 +142,23 @@ export class LinkedList<K, V> implements LinkedListInterface<K, V> {
       temp = temp.next
     }
     return false
+  }
+
+  readNextKey(position: number) {
+    if (!this.head || position < 0) return null
+
+    let temp: Nullable<Node<K, V>> = this.head
+    let currentPosition = 0
+
+    while (temp) {
+      if (position === currentPosition) {
+        return temp.next?.data.key ?? null
+      }
+      temp = temp.next
+      currentPosition++
+    }
+
+    return null
   }
 
   contains(key: K) {
