@@ -12,6 +12,7 @@ interface HashmapInterface<T> {
   keys: () => string[]
   values: () => T[]
   entries: () => Entries<T>[]
+  clear: () => void
 }
 
 export class Hashmap<T> implements HashmapInterface<T> {
@@ -85,6 +86,7 @@ export class Hashmap<T> implements HashmapInterface<T> {
 
     if (index !== -1) {
       bucket.updateAt(index, key, value)
+      return
     }
 
     if (bucket.append(key, value)) this.#counter++
@@ -137,5 +139,12 @@ export class Hashmap<T> implements HashmapInterface<T> {
     }
 
     return output
+  }
+
+  clear() {
+    this.#counter = 0
+    this.#capacity = 16
+    this.#calculateMaxEntries()
+    this.#initBuckets()
   }
 }
