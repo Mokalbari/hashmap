@@ -9,6 +9,7 @@ interface HashmapInterface<T> {
   has: (key: string) => boolean
   remove: (key: string) => boolean
   length: () => number
+  lengthWithSize: () => string
   keys: () => string[]
   values: () => T[]
   entries: () => Entries<T>[]
@@ -19,7 +20,7 @@ export class Hashmap<T> implements HashmapInterface<T> {
   #capacity = 16
   #loadFactor = 0.75
   #counter = 0
-  #maxEntries = Math.floor(this.#capacity / this.#loadFactor)
+  #maxEntries = Math.floor(this.#capacity * this.#loadFactor)
 
   public bucketList: LinkedList<string, T>[] = []
 
@@ -28,11 +29,11 @@ export class Hashmap<T> implements HashmapInterface<T> {
   }
 
   #calculateMaxEntries() {
-    this.#maxEntries = Math.floor(this.#capacity / this.#loadFactor)
+    this.#maxEntries = Math.floor(this.#capacity * this.#loadFactor)
   }
 
   #doubleCapacity() {
-    this.#capacity *= 2
+    this.#capacity = this.#capacity * 2
   }
 
   #initBuckets() {
@@ -42,19 +43,17 @@ export class Hashmap<T> implements HashmapInterface<T> {
   }
 
   #resize() {
-    if (this.#counter >= this.#maxEntries) {
-      const oldBucketList = this.bucketList
+    const oldBucketList = this.bucketList
 
-      this.#doubleCapacity()
-      this.#calculateMaxEntries()
-      this.#initBuckets()
+    this.#doubleCapacity()
+    this.#calculateMaxEntries()
+    this.#initBuckets()
 
-      for (const bucket of oldBucketList) {
-        const entries = bucket.toArray("both") as [string, T][]
-        for (const [key, value] of entries) {
-          const newBucket = this.#getBucket(key)
-          newBucket.append(key, value)
-        }
+    for (const bucket of oldBucketList) {
+      const entries = bucket.toArray("both") as [string, T][]
+      for (const [key, value] of entries) {
+        const newBucket = this.#getBucket(key)
+        newBucket.append(key, value)
       }
     }
   }
@@ -80,7 +79,6 @@ export class Hashmap<T> implements HashmapInterface<T> {
   }
 
   set(key: string, value: T) {
-    this.#resize()
     const bucket = this.#getBucket(key)
     const index = bucket.findIndex(key)
 
@@ -89,9 +87,14 @@ export class Hashmap<T> implements HashmapInterface<T> {
       return
     }
 
-    if (bucket.append(key, value)) this.#counter++
+    if (this.#counter + 1 >= this.#maxEntries) {
+      this.#resize()
+      const newBucket = this.#getBucket(key)
+      if (newBucket.append(key, value)) this.#counter++
+    } else {
+      if (bucket.append(key, value)) this.#counter++
+    }
   }
-
   get(key: string) {
     const bucket = this.#getBucket(key)
     return bucket.read(key)
@@ -107,6 +110,14 @@ export class Hashmap<T> implements HashmapInterface<T> {
 
   length() {
     return this.#counter
+  }
+
+  lengthWithSize() {
+    return `${this.length()} of ${
+      this.#capacity
+    } max capacity. The max entries are fixed at ${
+      this.#maxEntries
+    } with a load factor of ${this.#loadFactor}`
   }
 
   keys() {
